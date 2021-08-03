@@ -24,7 +24,6 @@ class TimeUnit:
     def __init__(self, exp_time, normalizer, contextTp):
         self._noyear = False
         self.exp_time = exp_time
-        # print(exp_time)
         self.normalizer = normalizer
         self.tp = TimePoint()
         self.tp_origin = contextTp
@@ -115,7 +114,8 @@ class TimeUnit:
         :return:
         """
         # 一位数表示的年份
-        rule = u"(?<![0-9])[0-9]{1}(?=年)"
+        # rule = u"(?<![0-9])[0-9]{1}(?=年)"  #3年--公元3年   & 2年之前
+        rule = u"(?<![0-9])[0-9]{1}(?=年(?![以之]?(前|后|内|左右)))"  #3年--公元3年   * 2年之前
         pattern = re.compile(rule)
         match = pattern.search(self.exp_time)
         if match is not None:
@@ -517,7 +517,6 @@ class TimeUnit:
         设置以上文时间为基准的时间偏移计算
         :return:
         """
-        # print(self.exp_time)
         cur = arrow.get(self.normalizer.timeBase, "YYYY-M-D-H-m-s")
         flag = [False, False, False]
 
@@ -995,8 +994,6 @@ class TimeUnit:
         time_arr = self.normalizer.timeBase.split('-')
         cur = arrow.get(self.normalizer.timeBase, "YYYY-M-D-H-m-s")
         cur_unit = int(time_arr[checkTimeIndex])
-        # print(time_arr)
-        # print(self.tp.tunit)
         if self.tp.tunit[0] == -1:
             self._noyear = True
         else:
@@ -1023,8 +1020,6 @@ class TimeUnit:
         time_arr = self.normalizer.timeBase.split('-')
         if self._noyear:
             # check the month
-            # print(parse)
-            # print(time_arr)
             if parse[1] == int(time_arr[1]):
                 if parse[2] > int(time_arr[2]):
                     parse[0] = parse[0] - 1
