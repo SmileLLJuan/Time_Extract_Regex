@@ -4,5 +4,7 @@
 # @Author  : zhm
 # @File    : __init__.py
 # @Software: PyCharm
+
 import sys,os
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+print(sys.path)

@@ -13,12 +13,13 @@ import os
 from StringPreHandler import StringPreHandler
 from TimePoint import TimePoint
 from TimeUnit import TimeUnit
-
+from timestamp_timespan import Time2Span
 # 时间表达式识别的主要工作类
 class TimeNormalizer:
     def __init__(self, isPreferFuture=True):
         self.isPreferFuture = isPreferFuture
         self.pattern, self.holi_solar, self.holi_lunar = self.init()
+        self.ts=Time2Span()
 
     # 这里对一些不规范的表达做转换
     def _filter(self, input_query):
@@ -90,8 +91,72 @@ class TimeNormalizer:
         self.oldTimeBase = self.timeBase
         self.__preHandling()
         self.timeToken = self.__timeEx()
+
         dic = {}
         res = self.timeToken
+        # print("res",[(r.tp.tunit,r.isMorning,self.isTimeSpan) for r in res],self.target,self.isTimeSpan,self.timeSpan,[r.time for r in res])
+
+        # 修改 timedelta 时间区间，返回从当前时间之前|之后 的时间 timespan
+        if self.isTimeSpan:
+            if self.invalidSpan:
+                dic['error'] = 'no time pattern could be extracted.'
+            else:
+                result = {}
+                dic['type'] = 'timedelta'
+                dic['timedelta'] = self.timeSpan
+                index = dic['timedelta'].find('days')
+                days = int(dic['timedelta'][:index-1])
+                result['year'] = int(days / 365)
+                result['month'] = int(days / 30 - result['year'] * 12)
+                result['day'] = int(days - result['year'] * 365 - result['month'] * 30)
+                index = dic['timedelta'].find(',')
+                time = dic['timedelta'][index+1:]
+                time = time.split(':')
+                result['hour'] = int(time[0])
+                result['minute'] = int(time[1])
+                result['second'] = int(time[2])
+                # dic['timedelta'] = result
+                current_date = arrow.get(arrow.get(arrow.now()).format('YYYY-M-D-H-m-s'), "YYYY-M-D-H-m-s")
+                start_date = current_date.shift(days=-(days+1), hours=-result['hour'], minutes=-result['minute'],seconds=-result['second'])
+                dic['timespan'] = [start_date.format("YYYY-MM-DD HH:mm:ss"),current_date.format("YYYY-MM-DD HH:mm:ss")]
+
+        else:
+            if len(res) == 0:
+                dic['error'] = 'no time pattern could be extracted.'
+            elif len(res) == 1:
+                # print("res[0]",res[0],type(res[0]))
+                dic['type'] = 'timestamp'
+                # dic['timestamp'] = res[0].time.format("YYYY-MM-DD HH:mm:ss")
+                # match = re.findall("年|月|旬|日|天", target)
+                # print(dic["timestamp"],match,target)
+                start_date,end_date=self.ts.parse(target,res[0].time.format("YYYY-MM-DD HH:mm:ss"))
+                dic['timespan']=[start_date.strftime("%Y-%m-%d %H:%M:%S"),end_date.strftime("%Y-%m-%d %H:%M:%S")]
+
+            else:
+                dic['type'] = 'timespan'
+                dic['timespan'] = [res[0].time.format("YYYY-MM-DD HH:mm:ss"), res[1].time.format("YYYY-MM-DD HH:mm:ss")]
+        return json.dumps(dic)
+
+    def parse_old(self, target, timeBase=arrow.now()):
+        """
+        TimeNormalizer的构造方法，timeBase取默认的系统当前时间
+        :param timeBase: 基准时间点
+        :param target: 待分析字符串
+        :return: 时间单元数组
+        """
+        self.isTimeSpan = False
+        self.invalidSpan = False
+        self.timeSpan = ''
+        self.target = self._filter(target)
+        self.timeBase = arrow.get(timeBase).format('YYYY-M-D-H-m-s')
+        self.nowTime = timeBase
+        self.oldTimeBase = self.timeBase
+        self.__preHandling()
+        self.timeToken = self.__timeEx()
+
+        dic = {}
+        res = self.timeToken
+        # print("res",[(r.tp.tunit,r.isMorning,r.isAllDayTime) for r in res])
 
         if self.isTimeSpan:
             if self.invalidSpan:
@@ -157,7 +222,7 @@ class TimeNormalizer:
             endline = m.end()
             rpointer += 1
         res = []
-        print(self.target,[(m.start(),m.end(),m.group()) for m in match],temp)
+        # print(self.target,[(m.start(),m.end(),m.group()) for m in match],temp)
         # 时间上下文： 前一个识别出来的时间会是下一个时间的上下文，用于处理：周六3点到5点这样的多个时间的识别，第二个5点应识别到是周六的。
         contextTp = TimePoint()
         for i in range(0, rpointer):
@@ -168,7 +233,6 @@ class TimeNormalizer:
             # print(self.nowTime.year)
             # print(contextTp.tunit)
         res = self.__filterTimeUnit(res)
-
         return res
 
     def __filterTimeUnit(self, tu_arr):

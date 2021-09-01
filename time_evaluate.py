@@ -23,7 +23,8 @@ def TimeNormalizer_evaluate():
     tn = TimeNormalizer()
     for text in texts:
         time_parse=tn.parse(target=text, timeBase=baseDate)
-        print(time_parse, text.replace("\n", ""))
+        if "timestamp" in time_parse:
+            print(time_parse, text.replace("\n", ""))
 
 def result_wirte(pd_results,file):
     file_name = file.split("/")[-1:][0]
