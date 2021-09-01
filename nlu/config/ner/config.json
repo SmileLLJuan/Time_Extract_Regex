@@ -1,0 +1,21 @@
+{
+    "data_dir": "/mnt/disk1/lishaozong/USTA-nlp/release_2.0.1/model/ner/IoT",
+    "warmup_steps": 1000,
+    "save_steps": 500,
+    "logging_steps": 500,
+    "learning_rate": 0.00002,
+    "evaluate_during_training": true,
+    "labels": "/mnt/disk1/lishaozong/USTA-nlp/release_2.0.1/model/ner/IoT/labels.txt",
+    "model_name_or_path": "/mnt/disk1/lishaozong/USTA-nlp/release_2.0.1/model/albert_chinese/albert_chinese_base",
+    "overwrite_output_dir": true,
+    "output_dir": "/mnt/disk1/lishaozong/USTA-nlp/release_2.0.1/model/ner/IoT/output_model",
+    "max_seq_length": 64,
+    "overwrite_cache": true,
+    "num_train_epochs": 5,
+    "per_gpu_train_batch_size": 64,
+    "seed": 1,
+    "do_train": true,
+    "do_eval": true,
+    "do_predict": false,
+    "no_cuda": true
+}

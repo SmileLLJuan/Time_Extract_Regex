@@ -6,7 +6,7 @@
 # @Software: PyCharm
 # @Changed : tianyuningmou
 
-from llj_test.Time_NLP.TimeNormalizer import TimeNormalizer # 引入包
+from TimeNormalizer import TimeNormalizer # 引入包
 
 tn = TimeNormalizer()
 
