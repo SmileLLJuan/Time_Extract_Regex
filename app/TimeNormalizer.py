@@ -184,3 +184,12 @@ class TimeNormalizer:
             if tu.time.timestamp != 0:
                 res.append(tu)
         return res
+if __name__ == '__main__':
+    tn = TimeNormalizer()
+    with open("../data/time_texts","r",encoding='utf-8') as f:
+        lines=f.readlines()
+    print(len(lines),lines[:10])
+    lines=["帮我查下今年腊月十二上午10点的车票"]
+    for line in lines:
+        print(line,tn.parse(line))
+    pass
